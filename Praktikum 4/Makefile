@@ -5,14 +5,11 @@ INCLUDE = ./include
 
 all: myShell
 
-
 myShell: myShell.o 
 	$(CC) $(CFLAGS) -o $@ $^
 	
 myShell.o: myShell.c
 	$(CC) $(CFLAGS2) -o $@ $^
-
-	
 
 run: myShell
 	./myShell
