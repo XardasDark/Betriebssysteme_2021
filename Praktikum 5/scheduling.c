@@ -134,6 +134,7 @@ void roundRobin()
     residenceTime = 0;
     listLength = List_count(&list);
     int parts = 0;
+    int done = 0;
     printf("\nRound Robin:\n");
     while (!List_isEmpty(&list))
     {
@@ -148,7 +149,7 @@ void roundRobin()
             printf("Es wurde %ds an %s gearbeitet.", parts, current->name);
             if (current->processingTime == 0)
             {
-                residenceTime += currTime;
+                done = 1;
                 printf(" | %s wurde abgearbeitet.\n", current->name);
                 JobNode *prev = current;
                 current = current->next;
@@ -158,7 +159,12 @@ void roundRobin()
             {
                 printf("\n");
                 current = current->next;
+                
             }
+        }
+        if(done){
+            residenceTime += currTime;
+            done = 0;
         }
         printf("\n");
     }
@@ -204,8 +210,9 @@ void roundRobinPrio()
         int termCount = 0;
         while (current != NULL)
         {
-            currTime += current->processingTime;
+            
             parts = currentSteps * current->priority;
+            currTime += parts;
             current->processingTime -= parts;
             timeLast += parts;
             printf("Es wurde %ds an %s gearbeitet", parts, current->name);
@@ -227,7 +234,7 @@ void roundRobinPrio()
         averageTime += totalTime;
         current = list.head;
     }
-    printf("\nAlle Jobs abgearbeitet\n\n");
+    printf("\nAlle Jobs abgearbeitet (Aktuelle Zeit: %d).\n\n", currTime);
     averageTime /= (float)amount;
     printf("Mittlere Verweilzeit:%.2fs\n", averageTime);
 }
