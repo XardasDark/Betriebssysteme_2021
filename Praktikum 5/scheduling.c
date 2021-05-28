@@ -167,6 +167,7 @@ void roundRobin()
     printf("Mittlere Verweilzeit: %.2f\n\n", averageResidenceTime);
 }
 
+//Hilfsfunktion für roundRobinPrio
 float getSteps()
 {
     JobNode *current = list.head;
