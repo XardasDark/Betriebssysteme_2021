@@ -1,0 +1,5 @@
+Compilieren mit: gcc main.c miniz.c include/miniz.h include/queue.h -pthread
+
+Ausgeführt mit: ./a.out ./documents
+
+Es müssen noch Aufgabe 3, 6, 7 gemacht werden.
