@@ -8,7 +8,11 @@
  *	-----
  *
  *	Angepasst von Ruben Grest und Ruben Hockemeyer (21.10.2014).
+ *  Angepasst damit die -Wimplicit-function-declaration Warnings nicht mehr erscheinen. (Es wurden bloß Funktionen verschoben)
  */
+
+#ifndef QUEUE_H
+#define QUEUE_H
 
 #include <stdlib.h>		/* malloc, free */
 
@@ -27,6 +31,28 @@ struct Node			/* Element der verketteten Liste */
     struct Node *next;		/* Zeiger auf naechstes Element */
     element value;		/* Wert dieses Elements */
 };
+
+/*
+ * Test, ob Schlange leer ist (liefert 1 falls leer, 0 sonst)
+ */
+int queue_empty (Queue queue)
+{
+    return queue->head == 0;
+}
+
+/*
+ * Element aus Schlange loeschen, liefert 0 bei Fehler
+ */
+int queue_delete (Queue queue)
+{
+    struct Node *node = queue->head;	/* erstes Element */
+
+    if (!node) return 0;		/* Schlange leer? */
+
+    queue->head = node->next;		/* Element aushaengen ... */
+    free(node);				/* ... und auch freigeben */
+    return 1;
+}
 
 /*
  * Neue Schlange anlegen, liefert NULL bei Fehler
@@ -70,20 +96,6 @@ int queue_insert (Queue queue, element value)
 }
 
 /*
- * Element aus Schlange loeschen, liefert 0 bei Fehler
- */
-int queue_delete (Queue queue)
-{
-    struct Node *node = queue->head;	/* erstes Element */
-
-    if (!node) return 0;		/* Schlange leer? */
-
-    queue->head = node->next;		/* Element aushaengen ... */
-    free(node);				/* ... und auch freigeben */
-    return 1;
-}
-
-/*
  * Vorderstes Element ansehen, liefert 0 bei leerer Schlange
  */
 element queue_head (Queue queue)
@@ -91,10 +103,6 @@ element queue_head (Queue queue)
     return queue->head ? queue->head->value : (element) 0;
 }
 
-/*
- * Test, ob Schlange leer ist (liefert 1 falls leer, 0 sonst)
- */
-int queue_empty (Queue queue)
-{
-    return queue->head == 0;
-}
+
+
+#endif //QUEUE_H
