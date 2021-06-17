@@ -1,18 +1,22 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <pthread.h>
 #include <dirent.h>
 #include <errno.h>
 #include <linux/limits.h>
 #include <string.h>
 #include <unistd.h>
+#include <pwd.h>
+#include <grp.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <time.h>
 
 #define RED   "\x1B[31m"
 #define GRN   "\x1B[32m"
+#define RESET "\x1B[0m"
 
 char pathbuff[PATH_MAX];
+
 int aFlag = 0;
 int lFlag = 0;
 int gFlag = 0;
@@ -39,51 +43,71 @@ int ignoreFolder(struct dirent *file){
     return 0;
 }
 
-int printFileStat(struct dirent *file, char *folderpath){
+int printFileStat(struct dirent *file){
     struct stat filestat;
-    char cat[PATH_MAX];
-    if(!ignoreFolder(file)){
-        strcpy(cat, folderpath);
-        strcat(cat, "/");
-        strcat(cat, file->d_name);
-    }
     char *fullpath = realpath(file->d_name, NULL);
-    printf("Fullpath: %s\n", fullpath);
+ 
     if(lstat(fullpath, &filestat) == 0){
         struct tm *tm;
         char buf[200];
         tm = localtime(&filestat.st_ctime);
         strftime(buf, sizeof(buf), "%b %d %H:%M", tm);
         printProtection(&filestat);
-        printf(" %ld %ld %s %s\n",filestat.st_nlink, filestat.st_size, buf, file->d_name);
+
+        if(oFlag && gFlag){
+            
+            printf(" %2ld %6ld %s",filestat.st_nlink, filestat.st_size, buf);
+        }else{
+           
+            struct passwd *user;
+            struct group *group;
+            
+            user = getpwuid(filestat.st_uid);
+            group = getgrgid(filestat.st_gid);
+            printf(" %2ld %s %s %6ld %s",filestat.st_nlink, user->pw_name, group->gr_name , filestat.st_size, buf);
+        }
+        char *hasFileEnd = strrchr(file->d_name, '.');
+        if(hasFileEnd && (strcmp(hasFileEnd, ".c") == 0)){
+            printf(GRN " %s\n" RESET, file->d_name);
+
+        }else if(!(S_ISDIR(filestat.st_mode)) && ((filestat.st_mode & S_IXUSR) || (filestat.st_mode & S_IXGRP) || (filestat.st_mode & S_IXOTH))){
+            printf(RED " %s\n" RESET, file->d_name);
+
+        }else{
+            printf(" %s\n", file->d_name);
+        }
+        
         return 1;
     }else{
         ("Konnte keine Details ausgeben!");
         return 0;
     }
-    puts("Debug");
 }
 
 int printDir(char *path){
+    struct dirent *file;
     DIR *dir = opendir(path);
+    chdir(path);
 
     if(dir){
-        struct dirent *file;
         while (file = readdir(dir)){
-            if(aFlag && lFlag && gFlag && oFlag){
-                printFileStat(file, path);
-
-            }else if(aFlag && lFlag){
-            
-            }else if(aFlag){
-                
-            }else if(lFlag){
-
-            }else{
-                if(!ignoreFolder(file)){
+            if(file != NULL){
+                if(aFlag && lFlag){
+                    printFileStat(file);
+                    
+                }else if(aFlag){
                     printf("%s\n", file->d_name);
-                }
-            } 
+                
+                }else if(lFlag){
+                    if(!ignoreFolder(file)){
+                        printFileStat(file);
+                    }
+                }else{
+                    if(!ignoreFolder(file)){
+                        printf("%s\n", file->d_name);
+                    }
+                } 
+            }
         }
         closedir(dir);
 
@@ -139,6 +163,5 @@ int main(int argc, char *argv[]){
         printf("Zu viele Argumente!");
         return EXIT_FAILURE;
     }
-    puts(path);
     printDir(path);
 }
